@@ -29,7 +29,7 @@ The Heatstroke Predictor app utilizes machine learning algorithms and historical
    - Input weather data for prediction.
 
 3. **Results:**
-   - View predicted heatstroke cases and suggested mitigation strategies.
+   - View predicted heatstroke cases. 
 
 ### Features:
 - **Data Collection:** Utilizes historical weather data (2016-2020) and synthetic heatstroke cases.
