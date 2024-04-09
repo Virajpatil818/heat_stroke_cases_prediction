@@ -1,6 +1,5 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter/cupertino.dart';
 
@@ -17,9 +16,6 @@ class _PredictionScreenState extends State<PredictionScreen> {
   final dewController = TextEditingController();
   final windController = TextEditingController();
 
-  String temperature = '';
-  String dewPoint = '';
-  String windSpeed = '';
   String predictionResult = '';
 
   Future<void> _predictHeatstroke() async {
@@ -28,10 +24,11 @@ class _PredictionScreenState extends State<PredictionScreen> {
         predictionResult = ''; // Reset predictionResult
       });
 
-      const apiUrl = 'http://127.0.0.1:5000/predict'; // Replace with your Flask API URL
+      const apiUrlCatBoost = 'http://127.0.0.1:5000/predict_catboost';
+      const apiUrlXGBoost = 'http://127.0.0.1:5000/predict_xgboost';
 
-      final response = await http.post(
-        Uri.parse(apiUrl),
+      final responseCatBoost = await http.post(
+        Uri.parse(apiUrlCatBoost),
         headers: <String, String>{
           'Content-Type': 'application/json',
         },
@@ -42,26 +39,29 @@ class _PredictionScreenState extends State<PredictionScreen> {
         }),
       );
 
-      if (response.statusCode == 200) {
-        final jsonResponse = jsonDecode(response.body);
-        final predictionDouble = double.tryParse(jsonResponse['prediction'].toString());
-        if (predictionDouble != null) {
-          final prediction = predictionDouble.toInt(); // Convert to integer
-          setState(() {
-            predictionResult = prediction.toString();
-          });
-          // Check if prediction result is more than 3
-          if (prediction > 3) {
-            _showAlert();
-          }
-        } else {
-          setState(() {
-            predictionResult = ''; // or any default value indicating an error
-          });
-        }
+      final responseXGBoost = await http.post(
+        Uri.parse(apiUrlXGBoost),
+        headers: <String, String>{
+          'Content-Type': 'application/json',
+        },
+        body: jsonEncode(<String, dynamic>{
+          'Dew_Point_dc': dewController.text,
+          'Temperature_dc': tempController.text,
+          'Wind_Speed_kph': windController.text,
+        }),
+      );
+
+      if (responseCatBoost.statusCode == 200 && responseXGBoost.statusCode == 200) {
+        final jsonResponseCatBoost = jsonDecode(responseCatBoost.body);
+        final jsonResponseXGBoost = jsonDecode(responseXGBoost.body);
+
+        setState(() {
+          predictionResult = 'CatBoost Prediction: ${jsonResponseCatBoost['prediction']}, '
+              'XGBoost Prediction: ${jsonResponseXGBoost['prediction']}';
+        });
       } else {
         setState(() {
-          predictionResult = ''; // or any default value indicating an error
+          predictionResult = 'Error fetching prediction';
         });
       }
     } catch (e) {
@@ -69,27 +69,6 @@ class _PredictionScreenState extends State<PredictionScreen> {
         predictionResult = 'Error: $e';
       });
     }
-  }
-
-  // Function to show alert
-  void _showAlert() {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text('Alert'),
-          content: const Text('The prediction result is more than 3. Inform local hospitals.'),
-          actions: <Widget>[
-            TextButton(
-              child: const Text('OK'),
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-            ),
-          ],
-        );
-      },
-    );
   }
 
   @override
@@ -145,7 +124,7 @@ class _PredictionScreenState extends State<PredictionScreen> {
                     ),
                     const SizedBox(height: 20),
                     Text(
-                      'Prediction Result : $predictionResult',
+                      predictionResult,
                       textAlign: TextAlign.center,
                       style: const TextStyle(fontSize: 16),
                     ),
