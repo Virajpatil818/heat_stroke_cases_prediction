@@ -33,7 +33,7 @@ The Heatstroke Predictor app utilizes machine learning algorithms and historical
 
 ### Features:
 - **Data Collection:** Utilizes historical weather data (2016-2020) and synthetic heatstroke cases.
-- **Machine Learning Algorithms:** Implements Random Forest Regression, CatBoost Regressor, and XGBoost Algorithm for prediction.
+- **Machine Learning Algorithms:** Implements Random Forest Regression, CatBoost Regressor, and XGBoost Algorithm for prediction. [Link to Algorithms](https://github.com/Virajpatil818/Machine-Learning-Algorithms/tree/main/ML%20Algorithms)
 - **Evaluation Metrics:** Evaluates model performance using RMSE, R-squared score, and accuracy.
 - **Interactive Interface:** User-friendly interface for inputting weather data and viewing predictions.
 
